@@ -3,7 +3,13 @@ package ro.vvs.upt;
 import ro.vvs.upt.utils.WebServerPath;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.StringTokenizer;
 
 public class WebServerThread extends Thread {
@@ -39,12 +45,20 @@ public class WebServerThread extends Thread {
             System.out.println("here is the request:" + input);
 
             if (mainServer.getServerState() == Server.STATUS.MAINTENANCE) {
-                respond(WebServerPath.getMaintenanceWebServerPath(), out, dataOut);
+                customResponse(out, dataOut);
+//                respond(WebServerPath.getMaintenanceWebServerPath(), out, dataOut);
             } else if (!method.equals("GET") && !method.equals("HEAD")) {  // method not implemented
                 respond(WebServerPath.getErrorWebServerPath(), out, dataOut);
             } else {
-                if (method.equals("GET"))
+                if (method.equals("GET")) {
                     respond(webServerPath, out, dataOut);
+
+                    if (webServerPath.getRequestedPath().endsWith(".html") ||
+                        webServerPath.getRequestedPath().endsWith(".txt")) {
+                        addVisitedPage(clientSocket.getInetAddress(), webServerPath.getRequestedPath());
+                    }
+
+                }
             }
 
         } catch (FileNotFoundException e) { // file not found
@@ -71,7 +85,48 @@ public class WebServerThread extends Thread {
         }
     }
 
+    private void customResponse(PrintWriter out, BufferedOutputStream dataOut) throws IOException {
+
+        String path = "src/main/resources/cache/" + clientSocket.getInetAddress() + ".html";
+        File file = new File(path);
+        int fileLength = (int) file.length();
+        String contentType = getContentType(path);
+
+        byte[] fileData = readFileData(file, fileLength);
+
+        out.println("HTTP/1.1 200 OK");
+        out.println("Server: JHTTP Server xDD");
+        out.println("Content-type: " + contentType);
+        out.println("Content-length: " + fileLength);
+        out.println();
+        out.flush();
+
+        dataOut.write(fileData, 0, fileLength);
+        dataOut.flush();
+
+        System.out.println("File " + path + " of type " + contentType + " returned");
+
+    }
+
+    private void addVisitedPage(InetAddress inetAddress, String requestedPath) {
+
+        Path path = Paths.get("src/main/resources/cache/" + inetAddress + ".html");
+        try {
+            if (!Files.exists(path)) {
+                Path htmlPath = Paths.get(WebServerPath.getMaintenanceWebServerPath().getLocalRequestedPath());
+                String htmlHeader = String.join("\n", Files.readAllLines(htmlPath));
+                htmlHeader += "<br>";
+                Files.write(path, htmlHeader.getBytes(), StandardOpenOption.CREATE);
+            }
+            Files.write(path, (requestedPath + "<br>\n").getBytes(), StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     private void respond(WebServerPath webServerPath, PrintWriter out, BufferedOutputStream dataOut) throws IOException {
+
         File file = new File(webServerPath.getLocalRequestedPath());
         int fileLength = (int) file.length();
         String contentType = getContentType(webServerPath.getRequestedPath());
