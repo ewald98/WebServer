@@ -1,6 +1,7 @@
 package ro.vvs.upt.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.OS;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,6 +17,7 @@ class ConfigurationManagerTest {
 
     @Test
     void testLoadConfigurationFile() {
+
         ConfigurationManager.getInstance().loadConfigurationFile("src/test/resources/testConfig.txt");
 
         Configuration config = ConfigurationManager.getInstance().getCurrentConfig();

@@ -33,8 +33,11 @@ public class GUI implements ActionListener {
 
         frame.add(panel, BorderLayout.CENTER);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setTitle("Server Status");
-        frame.pack();
+        frame.setTitle("JWebServer");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false);
+//        frame.pack();
+        frame.setSize(600, 600);
         frame.setVisible(true);
 
     }
