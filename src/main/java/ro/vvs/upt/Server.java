@@ -8,23 +8,28 @@ import java.net.ServerSocket;
 
 public class Server extends Thread {
 
+    private WebServerGUI gui;
+
     public enum STATUS {STOPPED, RUNNING, MAINTENANCE}
 
     private STATUS serverState;
     private ServerSocket serverSocket = null;
 
-    private final Configuration config;
-
-
     public Server() {
-        config = ConfigurationManager.getInstance().getCurrentConfig();
-
         // server is stopped initially
         serverState = STATUS.STOPPED;
     }
 
     public STATUS getServerState() {
         return serverState;
+    }
+
+    public String getStringServerState() {
+        return serverState.toString();
+    }
+
+    public String getPort() {
+        return String.valueOf(ConfigurationManager.getInstance().getCurrentConfig().getPort());
     }
 
     public void setServerState(STATUS serverState) {
@@ -41,17 +46,32 @@ public class Server extends Thread {
         }
     }
 
+    public void setServerState(String state) {
+        if (state.equals("STOPPED"))
+            setServerState(STATUS.STOPPED);
+        if (state.equals("RUNNING"))
+            setServerState(STATUS.RUNNING);
+        if (state.equals("MAINTENANCE"))
+            setServerState(STATUS.MAINTENANCE);
+    }
+
+    public void reloadConfig() {
+        // TODO: in case server is stopped
+    }
+
     @Override
     public void run() {
 
         while (true) {
 
+            if (gui != null) gui.setStatus(serverState.toString());
             if (serverState != STATUS.STOPPED) {
                 try {
-                    serverSocket = new ServerSocket(config.getPort());
+                    serverSocket = new ServerSocket(ConfigurationManager.getInstance().getCurrentConfig().getPort());
                     System.out.println("Connection Socket Created");
                     try {
                         while (true) {
+                            if (gui != null) gui.setStatus(serverState.toString());
                             System.out.println("Waiting for Connection");
                             new WebServerThread(serverSocket.accept(), this);
                         }
@@ -59,13 +79,13 @@ public class Server extends Thread {
                         System.err.println("Accept failed.");
                     }
                 } catch (IOException e) {
-                    System.err.println("Could not listen on port: " + config.getPort());
+                    System.err.println("Could not listen on port: " + ConfigurationManager.getInstance().getCurrentConfig().getPort());
                     System.exit(1);
                 } finally {
                     try {
                         serverSocket.close();
                     } catch (IOException e) {
-                        System.err.println("Could not close port: " + config.getPort());
+                        System.err.println("Could not close port: " + ConfigurationManager.getInstance().getCurrentConfig().getPort());
                         System.exit(1);
                     }
                 }
@@ -78,6 +98,10 @@ public class Server extends Thread {
             }
         }
 
+    }
+
+    public void setGui(WebServerGUI gui) {
+        this.gui = gui;
     }
 
 }

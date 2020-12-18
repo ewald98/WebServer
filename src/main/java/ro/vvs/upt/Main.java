@@ -16,6 +16,10 @@ public class Main {
         Server server = new Server();
         server.start();
 
+        WebServerGUI gui = new WebServerGUI(server);
+        gui.setVisible(true);
+
+
         while (true) {
             System.out.println("Change Server State:");
             System.out.println("0. STOPPED");

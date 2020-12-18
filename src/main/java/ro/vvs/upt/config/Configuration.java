@@ -68,4 +68,14 @@ public class Configuration {
     public void setMaintenanceFolder(String maintenanceFolder) {
         this.maintenanceFolder = maintenanceFolder;
     }
+
+    @Override
+    public String toString() {
+        return port + "\n" +
+               webroot + "\n" +
+               maintenanceFile + "\n" +
+               defaultFile + "\n" +
+               errorFile + "\n" +
+               maintenanceFolder + "\n";
+    }
 }

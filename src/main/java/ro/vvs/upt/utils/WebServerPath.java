@@ -10,10 +10,7 @@ public class WebServerPath {
     private String requestedPath;
     private String localRequestedPath;
 
-    private Configuration config;
-
     public WebServerPath(String requestedPath) {
-        config = ConfigurationManager.getInstance().getCurrentConfig();
 
         this.rawPath = requestedPath.replaceAll("%20", " ");
         this.requestedPath = assembleRequestedPath(rawPath);
@@ -39,7 +36,7 @@ public class WebServerPath {
         if (!rawPath.endsWith("/"))
             return rawPath;
         else
-            return rawPath + config.getDefaultFile();
+            return rawPath + ConfigurationManager.getInstance().getCurrentConfig().getDefaultFile();
     }
 
     /**
@@ -48,8 +45,8 @@ public class WebServerPath {
      * @return
      */
     private String assembleLocalRequestedPath(String requestedPath) {
-        if (requestedPath.equals(config.getMaintenanceFile()))
-            return concatenatePaths(config.getMaintenanceFolder(), config.getMaintenanceFile());
+        if (requestedPath.equals(ConfigurationManager.getInstance().getCurrentConfig().getMaintenanceFile()))
+            return concatenatePaths(ConfigurationManager.getInstance().getCurrentConfig().getMaintenanceFolder(), ConfigurationManager.getInstance().getCurrentConfig().getMaintenanceFile());
         return addWebRootPrefix(requestedPath);
     }
 
